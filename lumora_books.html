@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumora | Premium Books</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lumora: {
+                            dark: '#111827', // Used for high-contrast text now
+                            card: 'rgba(255, 255, 255, 0.6)', 
+                            border: 'rgba(255, 255, 255, 0.8)',
+                            accent: '#3eb489', // Mint Green
+                            accentHover: '#2d9972',
+                            pink: '#d48bbd', // Foxglove Pink
+                            text: '#1f2937', // Dark gray for readability
+                            muted: '#4b5563' // Medium gray
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            color: #1f2937;
+            overflow-x: hidden;
+            background: #f8fafc;
+        }
+        /* Light, vibrant gradient background */
+        .animated-bg {
+            position: fixed; inset: 0; z-index: -2;
+            background: linear-gradient(-45deg, #e6fffa, #fdf2f8, #f0fdf4, #fff1f2);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG { 
+            0% {background-position: 0% 50%;} 
+            50% {background-position: 100% 50%;} 
+            100% {background-position: 0% 50%;} 
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3eb489; }
+        
+        /* Glassmorphism for Light Theme */
+        .glass {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .noise {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 50; opacity: 0.03;
+            background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+        
+        /* Text glow adapted for light theme */
+        .glow-text { text-shadow: 0 0 20px rgba(62, 180, 137, 0.4); }
+        .glow-text-pink { text-shadow: 0 0 20px rgba(212, 139, 189, 0.4); }
+        
+        .carousel-slide { transition: opacity 1s ease-in-out; }
+        .punch-anim { animation: punch 0.3s ease-in-out; }
+        @keyframes punch {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.8) rotate(-10deg); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="antialiased font-sans selection:bg-lumora-pink selection:text-white">
+    <div class="noise"></div>
+    <div class="animated-bg"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 glass transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <i class="ph-fill ph-book-open-text text-3xl text-lumora-accent"></i>
+                    <span class="font-serif text-2xl font-bold tracking-wider text-lumora-dark">LUMORA</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="text-sm font-semibold text-gray-700 hover:text-lumora-accent transition-colors">Home</a>
+                    <a href="#about" class="text-sm font-semibold text-gray-700 hover:text-lumora-accent transition-colors">About</a>
+                    <a href="#catalogue" class="text-sm font-semibold text-gray-700 hover:text-lumora-accent transition-colors">Catalogue</a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <button id="nav-user-btn" class="text-gray-700 hover:text-lumora-accent transition-colors relative group">
+                        <i class="ph ph-user text-2xl"></i>
+                    </button>
+                    <button id="cart-btn" class="text-gray-700 hover:text-lumora-accent transition-colors relative group">
+                        <i class="ph ph-shopping-bag text-2xl"></i>
+                        <span id="cart-count" class="absolute -top-1 -right-2 bg-lumora-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section (Carousel) -->
+    <section id="home" class="relative pt-20 h-[90vh] overflow-hidden flex items-center justify-center">
+        <div id="hero-carousel" class="absolute inset-0 z-0">
+            <!-- Slide 1 -->
+            <div class="carousel-slide absolute inset-0 opacity-100">
+                <img src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&q=80&w=1600" class="w-full h-full object-cover opacity-20">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/60"></div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="carousel-slide absolute inset-0 opacity-0">
+                <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&q=80&w=1600" class="w-full h-full object-cover opacity-20">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/60"></div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="carousel-slide absolute inset-0 opacity-0">
+                <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=1600" class="w-full h-full object-cover opacity-20">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/60"></div>
+            </div>
+        </div>
+
+        <div class="relative z-10 max-w-5xl mx-auto text-center px-4 glass p-10 md:p-16 rounded-3xl border border-white">
+            <h1 class="font-serif text-5xl md:text-7xl font-bold mb-6 leading-tight text-gray-900 glow-text">
+                Uncover the <span class="italic text-lumora-pink glow-text-pink">Mysteries</span><br> Within the Pages
+            </h1>
+            <p class="text-lg md:text-xl text-gray-700 mb-10 max-w-2xl mx-auto font-light">
+                Curated collections for the curious mind. From deep tech to enchanting realms, find your next intellectual escape wrapped in color.
+            </p>
+            <a href="#catalogue" class="inline-flex items-center justify-center px-10 py-4 text-base font-bold text-white bg-lumora-accent rounded-full hover:bg-lumora-pink transition-all duration-500 hover:scale-105 shadow-[0_10px_20px_rgba(62,180,137,0.3)]">
+                Explore Collection <i class="ph ph-arrow-right ml-2 text-xl"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Book of the Day -->
+    <section class="py-20 relative glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center gap-12 bg-white/50 backdrop-blur-xl border border-white rounded-3xl p-8 md:p-12 shadow-[0_20px_40px_rgba(0,0,0,0.05)] relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-lumora-pink/20 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
+                <div class="absolute bottom-0 left-0 w-64 h-64 bg-lumora-accent/20 rounded-full blur-3xl -z-10 -translate-x-1/2 translate-y-1/2"></div>
+                
+                <div class="w-full md:w-1/3 relative group">
+                    <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800" alt="Book of the Day" class="rounded-xl shadow-2xl group-hover:scale-105 transition-transform duration-500 z-10 relative">
+                    <div class="absolute -top-4 -right-4 bg-lumora-pink text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full shadow-lg z-20 transform rotate-12">Deal of the Day</div>
+                </div>
+                
+                <div class="w-full md:w-2/3 space-y-6">
+                    <div class="flex items-center gap-3 text-lumora-accent">
+                        <i class="ph-fill ph-clock text-2xl"></i>
+                        <span class="font-mono text-xl font-bold tracking-widest text-gray-800" id="countdown-timer">12:45:30</span>
+                        <span class="text-sm uppercase text-gray-500 tracking-widest ml-2">Remaining</span>
+                    </div>
+                    <h2 class="font-serif text-4xl md:text-5xl text-gray-900 font-bold">The Enigma Code</h2>
+                    <p class="text-lumora-pink font-bold tracking-wide text-lg">by Julian Cipher</p>
+                    <p class="text-gray-600 leading-relaxed max-w-2xl text-lg">
+                        Dive into the breathtaking thriller that uncovers a conspiracy buried deep within the internet's backbone. Today only, acquire this masterwork at a fraction of its true value before the timer expires.
+                    </p>
+                    <div class="flex items-center gap-6 pt-4">
+                        <div class="flex flex-col">
+                            <span class="text-gray-400 line-through text-sm font-semibold">₹1,299</span>
+                            <span class="font-serif text-4xl text-lumora-accent font-bold">₹499</span>
+                        </div>
+                        <button onclick="addToCart(1); showToast('Deal claimed!')" class="px-8 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-lumora-accent transition-all shadow-lg flex items-center gap-2">
+                            <i class="ph-fill ph-bag"></i> Claim Offer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Author Spotlight -->
+    <section class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="font-serif text-4xl mb-4 text-gray-900 font-bold">Voices of Lumora</h2>
+            <p class="text-gray-600 mb-16 max-w-2xl mx-auto text-lg">Meet the brilliant minds behind this month's most captivating reads. Their words shape the universes we lose ourselves within.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <!-- Author 1 -->
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <div class="w-40 h-40 rounded-full p-1 bg-gradient-to-tr from-lumora-accent to-lumora-pink mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=300" class="w-full h-full object-cover rounded-full border-4 border-white">
+                    </div>
+                    <h3 class="font-serif text-2xl mb-1 text-gray-900 font-bold group-hover:text-lumora-pink transition-colors">Elena Vance</h3>
+                    <p class="text-sm text-lumora-accent uppercase tracking-widest font-bold mb-3">Sci-Fi Visionary</p>
+                    <p class="text-gray-600 text-sm max-w-xs">Author of "Neon Horizons". Her worlds blend cyber-punk aesthetics with profound human emotion.</p>
+                </div>
+                <!-- Author 2 -->
+                <div class="flex flex-col items-center group cursor-pointer md:-translate-y-8">
+                    <div class="w-48 h-48 rounded-full p-1 bg-gradient-to-tr from-lumora-pink to-lumora-accent mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300" class="w-full h-full object-cover rounded-full border-4 border-white">
+                    </div>
+                    <h3 class="font-serif text-2xl mb-1 text-gray-900 font-bold group-hover:text-lumora-accent transition-colors">Marcus Thorne</h3>
+                    <p class="text-sm text-lumora-pink uppercase tracking-widest font-bold mb-3">Master of Thrillers</p>
+                    <p class="text-gray-600 text-sm max-w-xs">His narratives grip you from page one. Winner of the Global Mystery Award.</p>
+                </div>
+                <!-- Author 3 -->
+                <div class="flex flex-col items-center group cursor-pointer">
+                    <div class="w-40 h-40 rounded-full p-1 bg-gradient-to-tr from-lumora-accent to-blue-400 mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300" class="w-full h-full object-cover rounded-full border-4 border-white">
+                    </div>
+                    <h3 class="font-serif text-2xl mb-1 text-gray-900 font-bold group-hover:text-blue-500 transition-colors">David Chen</h3>
+                    <p class="text-sm text-blue-500 uppercase tracking-widest font-bold mb-3">Tech Historian</p>
+                    <p class="text-gray-600 text-sm max-w-xs">Deconstructs the digital age. A must-read for anyone fascinated by silicon valleys.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catalogue Section -->
+    <section id="catalogue" class="py-20 glass relative min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl mb-4 text-gray-900 font-bold">The Grand Library</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Discover our carefully curated selection of masterworks. Add 4 items to your cart, and the 5th is on us.</p>
+            </div>
+
+            <!-- Dynamic Category Tabs -->
+            <div id="category-tabs" class="flex flex-wrap justify-center gap-3 mb-12">
+                <!-- Tabs injected by JS -->
+            </div>
+
+            <!-- Dynamic Books Grid -->
+            <div id="catalogue-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Books injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 relative border-t border-white/50 bg-white/30 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center gap-16">
+                <div class="w-full md:w-1/2">
+                    <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=800" alt="About Lumora" class="rounded-2xl shadow-xl w-full object-cover h-[500px]">
+                </div>
+                <div class="w-full md:w-1/2 space-y-6">
+                    <h2 class="font-serif text-4xl text-gray-900 font-bold">Designing What Feels Alive</h2>
+                    <p class="text-gray-700 text-lg leading-relaxed">
+                        At Lumora, we believe a book is more than paper and ink. It is a portal to another dimension, a catalyst for new ideas, and a sanctuary for the soul. We meticulously craft our collections to evoke emotion and spark curiosity.
+                    </p>
+                    <p class="text-gray-700 text-lg leading-relaxed">
+                        Our glassmorphic aesthetic reflects transparency and light, removing barriers between you and the knowledge you seek. Step into our world, and let your imagination take root.
+                    </p>
+                    <button class="px-8 py-3 bg-lumora-pink text-white font-bold rounded-full hover:bg-lumora-accent transition-colors shadow-lg">Our Story</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modals & Overlays -->
+    
+    <!-- 1. Slide-out Cart -->
+    <div id="cart-overlay" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm hidden z-50 transition-opacity">
+        <div id="cart-panel" class="absolute top-0 right-0 w-full max-w-md h-full bg-white/95 backdrop-blur-xl border-l border-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
+                <h2 class="font-serif text-2xl font-bold text-gray-900"><i class="ph ph-shopping-bag mr-2 text-lumora-accent"></i>Your Satchel</h2>
+                <button id="close-cart" class="text-gray-500 hover:text-gray-900"><i class="ph ph-x text-2xl"></i></button>
+            </div>
+            
+            <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <!-- Cart items injected by JS -->
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 bg-gray-50/80 space-y-4">
+                <div class="bg-lumora-accent/10 text-lumora-accent text-xs font-bold px-3 py-2 rounded border border-lumora-accent/20 flex items-center justify-center gap-2">
+                    <i class="ph-fill ph-tag"></i> Buy 4 Get 1 FREE (Auto-Applied)
+                </div>
+                <div class="flex justify-between text-gray-600 text-sm">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal">₹0</span>
+                </div>
+                <div id="cart-discount-row" class="flex justify-between text-lumora-accent text-sm hidden font-semibold">
+                    <span>B4G1 Discount</span>
+                    <span id="cart-discount">-₹0</span>
+                </div>
+                <div class="flex justify-between font-serif text-2xl text-gray-900 font-bold border-t border-gray-200 pt-3">
+                    <span>Total</span>
+                    <span id="cart-total">₹0</span>
+                </div>
+                <button id="checkout-btn" class="w-full py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-lumora-accent transition-colors shadow-lg">
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Book Details Modal -->
+    <div id="book-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-md hidden z-[60] flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white/95 backdrop-blur-xl border border-white rounded-2xl w-full max-w-3xl flex flex-col md:flex-row overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 relative">
+            <button onclick="closeModal('book-modal')" class="absolute top-4 right-4 z-10 bg-white/50 rounded-full p-1 text-gray-600 hover:text-gray-900 backdrop-blur"><i class="ph ph-x text-xl"></i></button>
+            
+            <div class="w-full md:w-1/2 h-64 md:h-auto relative">
+                <img id="modal-img" src="" class="w-full h-full object-cover">
+            </div>
+            
+            <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col bg-white/80">
+                <span id="modal-category" class="text-xs font-bold text-lumora-accent uppercase tracking-wider mb-2 block">Category</span>
+                <h2 id="modal-title" class="font-serif text-3xl md:text-4xl mb-2 text-gray-900 font-bold">Book Title</h2>
+                <p id="modal-author" class="text-gray-600 font-semibold mb-6">by Author Name</p>
+                <p class="text-gray-700 text-sm mb-8 leading-relaxed" id="modal-desc">
+                    Book description goes here.
+                </p>
+                <div class="mt-auto flex items-center justify-between">
+                    <span id="modal-price" class="font-serif text-3xl font-bold text-gray-900">₹0</span>
+                    <button id="modal-add-btn" class="px-6 py-3 bg-lumora-accent text-white font-bold rounded-xl hover:bg-lumora-accentHover transition-all flex items-center gap-2 shadow-lg hover:shadow-xl">
+                        <i class="ph ph-shopping-cart-simple text-xl"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Auth Modal (Login/Signup) -->
+    <div id="auth-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-md hidden z-[70] flex items-center justify-center p-4">
+        <div class="bg-white/90 backdrop-blur-xl rounded-2xl p-8 max-w-md w-full shadow-2xl border border-white relative text-center">
+            <button onclick="closeModal('auth-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><i class="ph ph-x text-xl"></i></button>
+            <i class="ph-fill ph-user-circle text-6xl text-lumora-accent mb-4 mx-auto drop-shadow-md"></i>
+            <h2 class="font-serif text-3xl font-bold text-gray-900 mb-2">Enter the Vault</h2>
+            <p class="text-sm text-gray-500 mb-6">Identify yourself to proceed.</p>
+            
+            <form id="auth-form" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Name</label>
+                    <input type="text" id="auth-name" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-lumora-accent focus:ring-1 focus:ring-lumora-accent text-gray-900 shadow-sm" placeholder="John Doe">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Email</label>
+                    <input type="email" id="auth-email" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-lumora-accent focus:ring-1 focus:ring-lumora-accent text-gray-900 shadow-sm" placeholder="john@example.com">
+                </div>
+                <button type="submit" class="w-full py-3 bg-lumora-accent rounded-lg font-bold text-white hover:bg-lumora-accentHover transition-colors mt-6 shadow-lg">
+                    Authenticate
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. User Dashboard / Settings -->
+    <div id="dashboard-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-md hidden z-[70] flex items-center justify-center p-4 md:p-10">
+        <div class="bg-white/90 backdrop-blur-2xl border border-white rounded-2xl w-full max-w-5xl h-[85vh] shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
+            <button onclick="closeModal('dashboard-modal')" class="absolute top-4 right-4 z-20 text-gray-500 hover:text-gray-900 bg-gray-100 rounded-full p-2"><i class="ph ph-x text-xl"></i></button>
+            
+            <!-- Sidebar -->
+            <div class="w-full md:w-1/4 bg-gray-50/80 border-b md:border-b-0 md:border-r border-gray-200 p-6 overflow-x-auto md:overflow-y-auto flex md:flex-col gap-2 no-scrollbar">
+                <div class="hidden md:block mb-8">
+                    <h2 class="font-serif text-2xl font-bold text-gray-900 truncate" id="dash-greeting">Hello, User</h2>
+                    <p class="text-xs font-bold text-lumora-accent uppercase tracking-wider">Lumora Member</p>
+                </div>
+                
+                <button class="dash-tab-btn active px-4 py-3 rounded-lg text-left text-sm font-bold flex items-center gap-3 whitespace-nowrap transition-colors bg-lumora-accent/10 text-lumora-accent border border-lumora-accent/20 shadow-sm" data-target="dash-profile">
+                    <i class="ph ph-identification-card text-lg"></i> Profile
+                </button>
+                <button class="dash-tab-btn px-4 py-3 rounded-lg text-left text-sm font-semibold text-gray-600 hover:bg-white hover:shadow-sm flex items-center gap-3 whitespace-nowrap transition-all border border-transparent" data-target="dash-orders">
+                    <i class="ph ph-package text-lg"></i> Orders
+                </button>
+                <button class="dash-tab-btn px-4 py-3 rounded-lg text-left text-sm font-semibold text-gray-600 hover:bg-white hover:shadow-sm flex items-center gap-3 whitespace-nowrap transition-all border border-transparent" data-target="dash-address">
+                    <i class="ph ph-map-pin text-lg"></i> Addresses
+                </button>
+                <button class="dash-tab-btn px-4 py-3 rounded-lg text-left text-sm font-semibold text-gray-600 hover:bg-white hover:shadow-sm flex items-center gap-3 whitespace-nowrap transition-all border border-transparent" data-target="dash-payment">
+                    <i class="ph ph-credit-card text-lg"></i> Payments
+                </button>
+                
+                <div class="md:mt-auto">
+                    <button id="logout-btn" class="px-4 py-3 rounded-lg text-left text-sm font-bold text-red-500 hover:bg-red-50 hover:shadow-sm flex items-center gap-3 transition-all border border-transparent w-full">
+                        <i class="ph ph-sign-out text-lg"></i> Logout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="flex-1 p-6 md:p-10 overflow-y-auto relative bg-white/50">
+                
+                <!-- Profile Tab -->
+                <div id="dash-profile" class="dash-tab-content block">
+                    <h3 class="font-serif text-3xl font-bold text-gray-900 mb-8">Personal Details</h3>
+                    <div class="space-y-6 max-w-md">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-2">Email Address (Bound)</label>
+                            <input type="email" id="profile-email" disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-500 cursor-not-allowed font-medium" value="">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-2">Phone Number</label>
+                            <div class="flex gap-2">
+                                <input type="tel" id="profile-phone" class="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-lumora-accent focus:ring-1 focus:ring-lumora-accent text-gray-900 font-medium" value="+91 9876543210">
+                                <button id="verify-phone-btn" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold hover:bg-lumora-accent hover:text-white rounded-lg text-sm transition-colors hidden">Verify</button>
+                            </div>
+                        </div>
+                        <!-- OTP Mock Area -->
+                        <div id="otp-area" class="hidden bg-lumora-accent/10 border border-lumora-accent/30 p-5 rounded-xl shadow-inner">
+                            <p class="text-sm font-bold text-lumora-accent mb-3">A code was whispered to your device.</p>
+                            <div class="flex gap-3 mb-4">
+                                <input type="text" maxlength="1" class="w-12 h-12 text-center bg-white border border-lumora-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-lumora-accent text-xl font-bold text-gray-900 shadow-sm">
+                                <input type="text" maxlength="1" class="w-12 h-12 text-center bg-white border border-lumora-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-lumora-accent text-xl font-bold text-gray-900 shadow-sm">
+                                <input type="text" maxlength="1" class="w-12 h-12 text-center bg-white border border-lumora-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-lumora-accent text-xl font-bold text-gray-900 shadow-sm">
+                                <input type="text" maxlength="1" class="w-12 h-12 text-center bg-white border border-lumora-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-lumora-accent text-xl font-bold text-gray-900 shadow-sm">
+                            </div>
+                            <button id="confirm-otp-btn" class="text-sm font-bold text-white bg-lumora-accent px-6 py-2 rounded-lg hover:bg-lumora-accentHover shadow-md transition-colors">Confirm</button>
+                        </div>
+                        <button id="save-profile-btn" class="w-full py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition-colors shadow-lg mt-4">Save Changes</button>
+                    </div>
+                </div>
+                
+                <!-- Orders Tab -->
+                <div id="dash-orders" class="dash-tab-content hidden">
+                    <h3 class="font-serif text-3xl font-bold text-gray-900 mb-8">Scrolls of History</h3>
+                    
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                        <div class="flex justify-between items-start mb-6 pb-6 border-b border-gray-100">
+                            <div>
+                                <h4 class="font-bold text-lg text-gray-900">Order #LM-88924</h4>
+                                <p class="text-sm font-medium text-gray-500">Total: ₹1,499 • 2 Items</p>
+                            </div>
+                            <span class="px-3 py-1 bg-lumora-accent/10 text-lumora-accent rounded-full text-xs font-bold uppercase tracking-wider border border-lumora-accent/20">In Transit</span>
+                        </div>
+                        
+                        <!-- Timeline -->
+                        <div class="relative pl-6 space-y-8 before:absolute before:inset-y-0 before:left-[11px] before:w-[2px] before:bg-gray-200" id="order-timeline">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Addresses Tab -->
+                <div id="dash-address" class="dash-tab-content hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="font-serif text-3xl font-bold text-gray-900">Sanctuaries</h3>
+                        <button id="add-addr-btn" class="px-4 py-2 bg-lumora-accent text-white font-bold text-sm rounded-lg hover:bg-lumora-accentHover shadow-md"><i class="ph ph-plus mr-1"></i> New</button>
+                    </div>
+                    
+                    <div id="new-addr-form" class="hidden bg-gray-50 border border-gray-200 p-6 rounded-xl mb-6 space-y-4 shadow-inner">
+                        <h4 class="font-bold text-gray-900 mb-2">Add New Location</h4>
+                        <input type="text" id="new-addr-title" placeholder="e.g. Home, Office" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-lumora-accent focus:ring-1 focus:ring-lumora-accent outline-none text-gray-900 shadow-sm font-medium">
+                        <textarea id="new-addr-text" placeholder="Full Address" rows="3" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-lumora-accent focus:ring-1 focus:ring-lumora-accent outline-none text-gray-900 shadow-sm font-medium"></textarea>
+                        <div class="flex gap-3 pt-2">
+                            <button id="save-addr-btn" class="px-6 py-2 bg-gray-900 text-white text-sm rounded-lg font-bold hover:bg-gray-800 shadow-md">Save</button>
+                            <button id="cancel-addr-btn" class="px-6 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg font-bold hover:bg-gray-50 shadow-sm">Cancel</button>
+                        </div>
+                    </div>
+                    
+                    <div id="address-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Addresses injected -->
+                    </div>
+                </div>
+
+                <!-- Payments Tab -->
+                <div id="dash-payment" class="dash-tab-content hidden">
+                    <h3 class="font-serif text-3xl font-bold text-gray-900 mb-8">Treasury</h3>
+                    
+                    <div class="flex gap-4 mb-6">
+                        <button onclick="togglePaymentForm('card')" class="flex-1 py-4 border border-gray-200 bg-white rounded-xl hover:border-lumora-accent hover:bg-lumora-accent/5 transition-all text-sm font-bold text-gray-700 flex items-center justify-center gap-2 shadow-sm"><i class="ph ph-credit-card text-xl text-lumora-accent"></i> Add Card</button>
+                        <button onclick="togglePaymentForm('upi')" class="flex-1 py-4 border border-gray-200 bg-white rounded-xl hover:border-lumora-accent hover:bg-lumora-accent/5 transition-all text-sm font-bold text-gray-700 flex items-center justify-center gap-2 shadow-sm"><i class="ph ph-qr-code text-xl text-lumora-accent"></i> Add UPI</button>
+                    </div>
+                    
+                    <div id="add-card-form" class="hidden bg-gray-50 border border-gray-200 p-6 rounded-xl mb-6 space-y-4 shadow-inner">
+                        <input type="text" placeholder="Card Number (xxxx xxxx xxxx xxxx)" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-lumora-accent outline-none font-medium shadow-sm">
+                        <div class="flex gap-4">
+                            <input type="text" placeholder="MM/YY" class="w-1/2 bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-lumora-accent outline-none font-medium shadow-sm">
+                            <input type="text" placeholder="CVV" class="w-1/2 bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-lumora-accent outline-none font-medium shadow-sm">
+                        </div>
+                        <button onclick="savePayment('card')" class="w-full py-3 bg-lumora-accent text-white rounded-lg font-bold hover:bg-lumora-accentHover shadow-md mt-2">Save Card</button>
+                    </div>
+
+                    <div id="add-upi-form" class="hidden bg-gray-50 border border-gray-200 p-6 rounded-xl mb-6 space-y-4 shadow-inner">
+                        <input type="text" id="new-upi-id" placeholder="yourname@upi" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-lumora-accent outline-none font-medium shadow-sm">
+                        <button onclick="savePayment('upi')" class="w-full py-3 bg-lumora-accent text-white rounded-lg font-bold hover:bg-lumora-accentHover shadow-md mt-2">Verify & Save UPI</button>
+                    </div>
+
+                    <div id="payment-list" class="space-y-3">
+                        <!-- Payments injected -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-md hidden z-[80] overflow-y-auto">
+        <div class="min-h-screen flex items-center justify-center p-4 py-10">
+            <div class="bg-white/95 backdrop-blur-2xl border border-white rounded-3xl w-full max-w-4xl p-6 md:p-10 shadow-2xl relative">
+                <button onclick="closeModal('checkout-modal')" class="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-100 rounded-full p-2"><i class="ph ph-x text-xl"></i></button>
+                <h2 class="font-serif text-3xl font-bold text-gray-900 mb-8 border-b border-gray-200 pb-4">Secure Checkout</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <!-- Left Col -->
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><i class="ph-fill text-lumora-accent ph-map-pin"></i> 1. Delivery Address</h3>
+                            <div class="bg-white border-2 border-lumora-accent rounded-xl p-5 shadow-sm cursor-pointer relative overflow-hidden">
+                                <div class="absolute top-0 right-0 bg-lumora-accent text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">SELECTED</div>
+                                <p class="font-bold text-gray-900">Default Home</p>
+                                <p class="text-sm font-medium text-gray-500 mt-1">123 Enigma Street, Arcane District, City 404001</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><i class="ph-fill text-lumora-accent ph-credit-card"></i> 2. Payment Method</h3>
+                            <select class="w-full bg-white border border-gray-300 rounded-xl px-4 py-4 text-sm font-medium text-gray-700 focus:outline-none focus:border-lumora-accent focus:ring-1 focus:ring-lumora-accent appearance-none shadow-sm cursor-pointer">
+                                <option>UPI: user@okbank</option>
+                                <option>Card ending in 4242</option>
+                            </select>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2"><i class="ph-fill text-lumora-accent ph-tag"></i> 3. Apply Coupon</h3>
+                            <div class="flex gap-2">
+                                <input type="text" id="coupon-input" placeholder="e.g. LUMORA50" class="flex-1 bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm uppercase font-bold text-gray-900 focus:outline-none focus:border-lumora-accent shadow-sm">
+                                <button id="apply-coupon-btn" class="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-md">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Col -->
+                    <div class="bg-gray-50 rounded-2xl p-8 border border-gray-200 h-fit shadow-inner">
+                        <h3 class="text-lg font-bold text-gray-900 mb-6">Order Summary</h3>
+                        <div id="checkout-items" class="space-y-4 mb-6 max-h-48 overflow-y-auto pr-2 text-sm text-gray-700 font-medium font-serif">
+                            <!-- Items injected -->
+                        </div>
+                        <div class="border-t border-gray-200 pt-6 space-y-3 text-sm font-medium text-gray-600">
+                            <div class="flex justify-between"><span>Subtotal</span><span id="chk-subtotal" class="font-bold text-gray-900">₹0</span></div>
+                            <div class="flex justify-between text-lumora-accent font-bold"><span>B4G1 Discount</span><span id="chk-b4g1">-₹0</span></div>
+                            <div class="flex justify-between text-lumora-pink font-bold hidden" id="chk-coupon-row"><span>Coupon Discount</span><span id="chk-coupon-amt">-₹0</span></div>
+                            <div class="flex justify-between"><span>Shipping</span><span class="text-lumora-accent font-bold">FREE</span></div>
+                        </div>
+                        <div class="border-t border-gray-200 mt-6 pt-6 flex justify-between font-bold text-2xl font-serif text-gray-900">
+                            <span>Total Payable</span><span id="chk-final">₹0</span>
+                        </div>
+                        <button id="place-order-btn" class="w-full py-4 mt-8 bg-lumora-accent text-white font-bold rounded-xl hover:bg-lumora-accentHover transition-colors text-lg flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(62,180,137,0.3)] hover:shadow-[0_10px_25px_rgba(62,180,137,0.4)]">
+                            <i class="ph-fill ph-lock-key"></i> Place Secure Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Scratch Card Modal -->
+    <div id="scratch-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-md hidden z-[90] flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-xl border border-white rounded-3xl p-10 max-w-sm w-full text-center relative shadow-[0_20px_50px_rgba(212,139,189,0.3)]">
+            <button onclick="closeModal('scratch-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 bg-gray-100 rounded-full p-2 z-20"><i class="ph ph-x text-xl"></i></button>
+            <h2 class="font-serif text-3xl font-bold text-lumora-pink mb-2">Daily Fortune</h2>
+            <p class="text-sm font-medium text-gray-500 mb-8">Scratch the silver to reveal your mystic code.</p>
+            
+            <div class="relative w-full h-48 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 overflow-hidden flex items-center justify-center select-none shadow-inner">
+                <!-- Revealed Content -->
+                <div class="text-center z-0">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Your Code</p>
+                    <p class="font-mono text-4xl font-black text-gray-900 tracking-widest bg-lumora-pink/10 py-2 px-6 border-2 border-lumora-pink border-dashed rounded-xl" id="secret-code">LUMORA50</p>
+                </div>
+                <!-- Canvas Cover -->
+                <canvas id="scratch-canvas" class="absolute inset-0 z-10 w-full h-full cursor-crosshair"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <div class="fixed bottom-6 right-6 flex flex-col gap-4 z-40">
+        <button id="gift-btn" class="w-14 h-14 rounded-full bg-gradient-to-tr from-lumora-pink to-purple-400 text-white shadow-xl flex items-center justify-center hover:scale-110 transition-transform group relative border-2 border-white">
+            <i class="ph-fill ph-gift text-3xl"></i>
+            <span class="absolute right-16 bg-white text-gray-900 font-bold text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg border border-gray-100">Daily Gift</span>
+        </button>
+        <button id="gemini-btn" class="w-14 h-14 rounded-full bg-lumora-accent text-white shadow-[0_10px_20px_rgba(62,180,137,0.4)] flex items-center justify-center hover:bg-lumora-accentHover transition-colors group relative border-2 border-white">
+            <span class="text-3xl">🥊</span>
+            <span class="absolute right-16 bg-white text-gray-900 font-bold text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg border border-gray-100">Punch Me!</span>
+        </button>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col gap-3 z-[100] pointer-events-none"></div>
+
+    <script>
+        // --- DATA STATE ---
+        let categories = ["All", "Cyber Security", "Coding", "Current Affairs", "Novels", "Kids", "Gemini Vault"];
+        
+        // 30 Authentic Books Array with Unsplash Images & INR Pricing
+        let books = [
+            // Cyber Security
+            { id: 1, title: "Ghost in the Wires", author: "Kevin Mitnick", price: 899, category: "Cyber Security", img: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80", desc: "A thrilling true story of the world's most wanted hacker." },
+            { id: 2, title: "The Art of Invisibility", author: "Kevin Mitnick", price: 749, category: "Cyber Security", img: "https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=500&q=80", desc: "Learn to protect your privacy in the age of big brother." },
+            { id: 3, title: "Cult of the Dead Cow", author: "Joseph Menn", price: 1199, category: "Cyber Security", img: "https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=500&q=80", desc: "How the original hacking supergroup might just save the world." },
+            { id: 4, title: "Sandworm", author: "Andy Greenberg", price: 1250, category: "Cyber Security", img: "https://images.unsplash.com/photo-1614064641913-a53b519655f4?w=500&q=80", desc: "A new era of cyberwar and the hunt for the Kremlin's most dangerous hackers." },
+            { id: 5, title: "Black Hat Python", author: "Justin Seitz", price: 950, category: "Cyber Security", img: "https://images.unsplash.com/photo-1515508823528-7a54a01c875d?w=500&q=80", desc: "Python programming for hackers and reverse engineers." },
+            
+            // Coding
+            { id: 6, title: "Clean Code", author: "Robert C. Martin", price: 1499, category: "Coding", img: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=500&q=80", desc: "A handbook of agile software craftsmanship." },
+            { id: 7, title: "Pragmatic Programmer", author: "Andrew Hunt", price: 1899, category: "Coding", img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&q=80", desc: "Your journey to mastery in software development." },
+            { id: 8, title: "You Don't Know JS", author: "Kyle Simpson", price: 699, category: "Coding", img: "https://images.unsplash.com/photo-1627398240411-8ec5a5eb592c?w=500&q=80", desc: "Up & Going. The foundation of JavaScript mechanics." },
+            { id: 9, title: "Eloquent JavaScript", author: "Marijn Haverbeke", price: 999, category: "Coding", img: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=500&q=80", desc: "A modern introduction to programming." },
+            { id: 10, title: "Design Patterns", author: "GoF", price: 2100, category: "Coding", img: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=500&q=80", desc: "Elements of reusable object-oriented software." },
+            
+            // Current Affairs
+            { id: 11, title: "Prisoners of Geography", author: "Tim Marshall", price: 599, category: "Current Affairs", img: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=500&q=80", desc: "Ten maps that explain everything about the world." },
+            { id: 12, title: "Factfulness", author: "Hans Rosling", price: 450, category: "Current Affairs", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&q=80", desc: "Ten reasons we're wrong about the world." },
+            { id: 13, title: "Sapiens", author: "Yuval Noah Harari", price: 799, category: "Current Affairs", img: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&q=80", desc: "A brief history of humankind." },
+            { id: 14, title: "The Age of AI", author: "Henry Kissinger", price: 899, category: "Current Affairs", img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=500&q=80", desc: "And our human future." },
+            { id: 15, title: "Chip War", author: "Chris Miller", price: 1050, category: "Current Affairs", img: "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=500&q=80", desc: "The fight for the world's most critical technology." },
+
+            // Novels
+            { id: 16, title: "Dune", author: "Frank Herbert", price: 699, category: "Novels", img: "https://images.unsplash.com/photo-1618331835717-801e976710b2?w=500&q=80", desc: "A masterpiece of science fiction." },
+            { id: 17, title: "The Midnight Library", author: "Matt Haig", price: 499, category: "Novels", img: "https://images.unsplash.com/photo-1463320726281-696a485928c7?w=500&q=80", desc: "Between life and death there is a library." },
+            { id: 18, title: "1984", author: "George Orwell", price: 299, category: "Novels", img: "https://images.unsplash.com/photo-1533669955142-6a73332af4db?w=500&q=80", desc: "The defining dystopian novel." },
+            { id: 19, title: "The Alchemist", author: "Paulo Coelho", price: 350, category: "Novels", img: "https://images.unsplash.com/photo-1478147424095-2503a6bcbd41?w=500&q=80", desc: "Follow your dreams across the desert." },
+            { id: 20, title: "Project Hail Mary", author: "Andy Weir", price: 750, category: "Novels", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&q=80", desc: "A lone astronaut must save the earth." },
+
+            // Kids
+            { id: 21, title: "Where the Wild Things Are", author: "Maurice Sendak", price: 450, category: "Kids", img: "https://images.unsplash.com/photo-1514050566906-8d077bae7046?w=500&q=80", desc: "Let the wild rumpus start!" },
+            { id: 22, title: "The Very Hungry Caterpillar", author: "Eric Carle", price: 399, category: "Kids", img: "https://images.unsplash.com/photo-1588665792476-88003a890539?w=500&q=80", desc: "A colorful journey of transformation." },
+            { id: 23, title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling", price: 699, category: "Kids", img: "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?w=500&q=80", desc: "The boy who lived." },
+            { id: 24, title: "Matilda", author: "Roald Dahl", price: 350, category: "Kids", img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&q=80", desc: "A little girl with extraordinary powers." },
+            { id: 25, title: "The Lorax", author: "Dr. Seuss", price: 400, category: "Kids", img: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=500&q=80", desc: "I speak for the trees." },
+
+            // Gemini Vault
+            { id: 26, title: "Prompt Engineering 101", author: "Gemini", price: 0, category: "Gemini Vault", img: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&q=80", desc: "Mastering the art of AI communication." },
+            { id: 27, title: "Neural Networks Untangled", author: "Gemini", price: 1200, category: "Gemini Vault", img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=500&q=80", desc: "Deep learning made crystalline." },
+            { id: 28, title: "The Singularity Paradox", author: "Gemini", price: 1500, category: "Gemini Vault", img: "https://images.unsplash.com/photo-1531297172864-459c55b85a3c?w=500&q=80", desc: "When machines dream of electric sheep." },
+            { id: 29, title: "Synthetic Poetry", author: "Gemini", price: 800, category: "Gemini Vault", img: "https://images.unsplash.com/photo-1513530176992-0cf73cb25c7e?w=500&q=80", desc: "Verses generated in the latent space." },
+            { id: 30, title: "Future Architectures", author: "Gemini", price: 2000, category: "Gemini Vault", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&q=80", desc: "Designing systems for the year 2050." }
+        ];
+
+        let cart = [];
+        let wishlist = [];
+        let isLoggedIn = false;
+        let currentUser = { name: "", email: "", phone: "+91 9876543210" };
+        let activeCategory = "All";
+        let appliedCoupon = null;
+        
+        let addresses = [
+            { id: 1, title: "Default Home", text: "123 Enigma Street, Arcane District, City 404001" }
+        ];
+        let payments = [
+            { id: 1, type: "UPI", text: "user@okbank" },
+            { id: 2, type: "Card", text: "Card ending in 4242" }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            tabs: document.getElementById('category-tabs'),
+            grid: document.getElementById('catalogue-grid'),
+            cartBtn: document.getElementById('cart-btn'),
+            cartOverlay: document.getElementById('cart-overlay'),
+            cartPanel: document.getElementById('cart-panel'),
+            cartItems: document.getElementById('cart-items'),
+            cartCount: document.getElementById('cart-count'),
+            cartSubtotal: document.getElementById('cart-subtotal'),
+            cartDiscountRow: document.getElementById('cart-discount-row'),
+            cartDiscount: document.getElementById('cart-discount'),
+            cartTotal: document.getElementById('cart-total'),
+            toastBox: document.getElementById('toast-container')
+        };
+
+        // --- UTILS ---
+        const formatMoney = (amount) => `₹${amount.toLocaleString('en-IN')}`;
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[char]));
+        const showToast = (msg) => {
+            const toast = document.createElement('div');
+            toast.className = 'bg-white border-2 border-lumora-accent text-gray-900 font-bold px-6 py-3 rounded-xl shadow-[0_10px_25px_rgba(62,180,137,0.3)] text-sm transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3';
+            toast.innerHTML = `<i class="ph-fill ph-check-circle text-xl text-lumora-accent"></i> ${msg}`;
+            els.toastBox.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            });
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+        const openModal = (id) => {
+            const m = document.getElementById(id);
+            m.classList.remove('hidden');
+            setTimeout(() => {
+                if(id === 'book-modal') m.classList.remove('opacity-0');
+                if(m.firstElementChild && m.firstElementChild.classList.contains('scale-95')) m.firstElementChild.classList.remove('scale-95');
+            }, 10);
+        };
+        const closeModal = (id) => {
+            const m = document.getElementById(id);
+            if(id === 'book-modal') {
+                m.classList.add('opacity-0');
+                m.firstElementChild.classList.add('scale-95');
+                setTimeout(() => m.classList.add('hidden'), 300);
+            } else {
+                m.classList.add('hidden');
+            }
+        };
+
+        // --- CATALOGUE RENDER LOGIC ---
+        function renderTabs() {
+            els.tabs.innerHTML = categories.map(cat => `
+                <button data-category="${escapeHtml(cat)}"
+                    class="px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border-2 shadow-sm ${activeCategory === cat ? 'bg-lumora-accent text-white border-lumora-accent shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-lumora-accent hover:text-lumora-accent'}">
+                    ${escapeHtml(cat)}
+                </button>
+            `).join('');
+            els.tabs.querySelectorAll('[data-category]').forEach(button => {
+                button.addEventListener('click', () => setCategory(button.dataset.category));
+            });
+        }
+
+        function setCategory(cat) {
+            activeCategory = cat;
+            renderTabs();
+            renderBooks();
+        }
+
+        function renderBooks() {
+            const filtered = activeCategory === 'All' ? books : books.filter(b => b.category === activeCategory);
+            
+            els.grid.innerHTML = filtered.map(book => {
+                const rating = 4.0 + (book.id % 10) / 10; 
+                const isWished = wishlist.includes(book.id);
+                
+                return `
+                <div class="bg-white/80 backdrop-blur rounded-3xl overflow-hidden border border-gray-200 hover:border-lumora-accent shadow-md hover:shadow-[0_15px_30px_rgba(62,180,137,0.15)] transition-all duration-300 group cursor-pointer flex flex-col h-full" onclick="openBookDetails(${book.id})">
+                    <div class="h-64 overflow-hidden relative p-4 pb-0">
+                        <img src="${escapeHtml(book.img)}" alt="${escapeHtml(book.title)}" class="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500 shadow-sm">
+                        <div class="absolute top-6 left-6 bg-white/90 backdrop-blur text-[10px] font-bold px-3 py-1.5 rounded-full border border-gray-200 text-lumora-accent uppercase tracking-wider shadow-sm">${escapeHtml(book.category)}</div>
+                        
+                        <button onclick="event.stopPropagation(); toggleWishlist(${book.id})" class="absolute top-6 right-6 z-10 p-2.5 rounded-full bg-white/90 backdrop-blur border border-gray-200 hover:bg-white shadow-sm transition-colors group/btn">
+                            <i class="ph-fill ph-heart text-xl transition-colors ${isWished ? 'text-lumora-pink' : 'text-gray-300 group-hover/btn:text-lumora-pink'}"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex text-yellow-400 text-sm mb-3">
+                            <i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star-half"></i>
+                            <span class="text-gray-500 ml-2 font-mono font-bold text-xs">(${rating.toFixed(1)})</span>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-lumora-accent transition-colors">${escapeHtml(book.title)}</h3>
+                        <p class="text-sm font-semibold text-gray-500 mb-5">${escapeHtml(book.author)}</p>
+                        <div class="mt-auto flex justify-between items-center pt-2">
+                            <span class="font-serif text-2xl font-bold text-gray-900">${formatMoney(book.price)}</span>
+                            <button onclick="event.stopPropagation(); addToCart(${book.id})" class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-900 group-hover:bg-lumora-accent group-hover:text-white transition-all hover:scale-110 shadow-sm group-hover:shadow-md">
+                                <i class="ph-fill ph-plus text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        window.toggleWishlist = (id) => {
+            if(wishlist.includes(id)) {
+                wishlist = wishlist.filter(wId => wId !== id);
+                showToast("Removed from Wishlist");
+            } else {
+                wishlist.push(id);
+                showToast("Added to Wishlist ❤️");
+            }
+            renderBooks();
+        };
+
+        function openBookDetails(id) {
+            const book = books.find(b => b.id === id);
+            if(!book) return;
+            
+            document.getElementById('modal-img').src = book.img;
+            document.getElementById('modal-category').innerText = book.category;
+            document.getElementById('modal-title').innerText = book.title;
+            document.getElementById('modal-author').innerText = `by ${book.author}`;
+            document.getElementById('modal-desc').innerText = book.desc;
+            document.getElementById('modal-price').innerText = formatMoney(book.price);
+            
+            const addBtn = document.getElementById('modal-add-btn');
+            addBtn.onclick = () => {
+                addToCart(book.id);
+                closeModal('book-modal');
+            };
+            
+            openModal('book-modal');
+        }
+
+        // --- CART LOGIC (B4G1) ---
+        function addToCart(id) {
+            const existing = cart.find(i => i.id === id);
+            if(existing) existing.qty++;
+            else cart.push({id, qty: 1});
+            updateCart();
+            showToast("Added to satchel");
+            
+            if(!els.cartOverlay.classList.contains('hidden')) return;
+            els.cartOverlay.classList.remove('hidden');
+            setTimeout(() => els.cartPanel.classList.remove('translate-x-full'), 10);
+        }
+
+        function updateCart() {
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            
+            if(totalItems > 0) {
+                els.cartCount.classList.remove('hidden');
+                els.cartCount.innerText = totalItems;
+            } else {
+                els.cartCount.classList.add('hidden');
+            }
+
+            if(cart.length === 0) {
+                els.cartItems.innerHTML = '<div class="text-center font-bold text-gray-400 mt-10">Your satchel is empty.</div>';
+                els.cartSubtotal.innerText = '₹0';
+                els.cartTotal.innerText = '₹0';
+                els.cartDiscountRow.classList.add('hidden');
+                return;
+            }
+
+            let html = '';
+            let rawSubtotal = 0;
+            let allItemPrices = [];
+
+            cart.forEach(item => {
+                const b = books.find(book => book.id === item.id);
+                rawSubtotal += b.price * item.qty;
+                for(let i=0; i<item.qty; i++) allItemPrices.push(b.price);
+
+                html += `
+                    <div class="flex gap-4 items-center bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                        <img src="${b.img}" class="w-14 h-20 object-cover rounded-lg shadow-sm">
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-gray-900 truncate w-40 mb-1">${b.title}</h4>
+                            <p class="text-sm font-serif font-bold text-gray-500">${formatMoney(b.price)}</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1 border border-gray-200">
+                            <button onclick="updateQty(${b.id}, -1)" class="text-gray-500 hover:text-gray-900 font-bold px-1">-</button>
+                            <span class="text-sm font-bold w-4 text-center text-gray-900">${item.qty}</span>
+                            <button onclick="updateQty(${b.id}, 1)" class="text-gray-500 hover:text-gray-900 font-bold px-1">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            els.cartItems.innerHTML = html;
+
+            let discount = 0;
+            if(totalItems >= 5) {
+                allItemPrices.sort((a,b) => a - b);
+                const freeCount = Math.floor(totalItems / 5);
+                for(let i=0; i<freeCount; i++) discount += allItemPrices[i];
+            }
+
+            els.cartSubtotal.innerText = formatMoney(rawSubtotal);
+            
+            if(discount > 0) {
+                els.cartDiscountRow.classList.remove('hidden');
+                els.cartDiscount.innerText = `-${formatMoney(discount)}`;
+            } else {
+                els.cartDiscountRow.classList.add('hidden');
+            }
+
+            els.cartTotal.innerText = formatMoney(rawSubtotal - discount);
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if(item) {
+                item.qty += delta;
+                if(item.qty <= 0) cart = cart.filter(i => i.id !== id);
+                updateCart();
+            }
+        }
+
+        els.cartBtn.onclick = () => {
+            els.cartOverlay.classList.remove('hidden');
+            setTimeout(() => els.cartPanel.classList.remove('translate-x-full'), 10);
+        };
+        document.getElementById('close-cart').onclick = () => {
+            els.cartPanel.classList.add('translate-x-full');
+            setTimeout(() => els.cartOverlay.classList.add('hidden'), 300);
+        };
+
+        // --- AUTH & CHECKOUT LOGIC ---
+        document.getElementById('checkout-btn').onclick = () => {
+            if(cart.length === 0) return showToast("Cart is empty");
+            els.cartPanel.classList.add('translate-x-full');
+            setTimeout(() => els.cartOverlay.classList.add('hidden'), 300);
+
+            if(!isLoggedIn) openModal('auth-modal');
+            else openCheckoutModal();
+        };
+
+        document.getElementById('auth-form').onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('auth-name').value;
+            const email = document.getElementById('auth-email').value;
+            currentUser.name = name;
+            currentUser.email = email;
+            isLoggedIn = true;
+            
+            document.getElementById('dash-greeting').innerText = `Hello, ${name}`;
+            document.getElementById('profile-email').value = email;
+            
+            closeModal('auth-modal');
+            showToast("Welcome to Lumora");
+            
+            if(cart.length > 0) openCheckoutModal();
+        };
+
+        function openCheckoutModal() {
+            const itemsDiv = document.getElementById('checkout-items');
+            itemsDiv.innerHTML = cart.map(item => {
+                const b = books.find(x => x.id === item.id);
+                return `<div class="flex justify-between border-b border-gray-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0"><span>${b.title} <span class="text-gray-400 font-sans text-xs">x${item.qty}</span></span><span>${formatMoney(b.price * item.qty)}</span></div>`;
+            }).join('');
+
+            let rawSubtotal = 0;
+            let allPrices = [];
+            cart.forEach(item => {
+                const b = books.find(x => x.id === item.id);
+                rawSubtotal += b.price * item.qty;
+                for(let i=0; i<item.qty; i++) allPrices.push(b.price);
+            });
+
+            const totalItems = cart.reduce((s,i)=>s+i.qty, 0);
+            let b4g1Discount = 0;
+            if(totalItems >= 5) {
+                allPrices.sort((a,b)=>a-b);
+                const freeCount = Math.floor(totalItems/5);
+                for(let i=0; i<freeCount; i++) b4g1Discount += allPrices[i];
+            }
+
+            let afterB4G1 = rawSubtotal - b4g1Discount;
+            let couponAmt = appliedCoupon === 'LUMORA50' ? 50 : 0;
+            let final = afterB4G1 - couponAmt;
+
+            document.getElementById('chk-subtotal').innerText = formatMoney(rawSubtotal);
+            document.getElementById('chk-b4g1').innerText = `-${formatMoney(b4g1Discount)}`;
+            
+            if(couponAmt > 0) {
+                document.getElementById('chk-coupon-row').classList.remove('hidden');
+                document.getElementById('chk-coupon-amt').innerText = `-${formatMoney(couponAmt)}`;
+            }
+            
+            document.getElementById('chk-final').innerText = formatMoney(final > 0 ? final : 0);
+
+            openModal('checkout-modal');
+        }
+
+        document.getElementById('apply-coupon-btn').onclick = () => {
+            const val = document.getElementById('coupon-input').value.toUpperCase();
+            if(val === 'LUMORA50') {
+                appliedCoupon = val;
+                showToast("Coupon Applied!");
+                openCheckoutModal();
+            } else {
+                showToast("Invalid Mystic Code");
+            }
+        };
+
+        document.getElementById('place-order-btn').onclick = () => {
+            closeModal('checkout-modal');
+            showToast("Order Placed Successfully! Generating Scrolls...");
+            cart = [];
+            appliedCoupon = null;
+            updateCart();
+            renderOrderTimeline(); 
+        };
+
+        // --- USER DASHBOARD LOGIC ---
+        document.getElementById('nav-user-btn').onclick = () => {
+            if(isLoggedIn) openModal('dashboard-modal');
+            else openModal('auth-modal');
+        };
+
+        document.getElementById('logout-btn').onclick = () => {
+            isLoggedIn = false;
+            closeModal('dashboard-modal');
+            showToast("Logged Out");
+        };
+
+        document.querySelectorAll('.dash-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.dash-tab-btn').forEach(b => {
+                    b.classList.remove('bg-lumora-accent/10', 'text-lumora-accent', 'border-lumora-accent/20', 'shadow-sm');
+                    b.classList.add('text-gray-600', 'border-transparent');
+                });
+                
+                const target = e.currentTarget;
+                target.classList.remove('text-gray-600', 'border-transparent');
+                target.classList.add('bg-lumora-accent/10', 'text-lumora-accent', 'border-lumora-accent/20', 'shadow-sm');
+
+                document.querySelectorAll('.dash-tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById(target.dataset.target).classList.remove('hidden');
+            });
+        });
+
+        const phoneInput = document.getElementById('profile-phone');
+        const verifyBtn = document.getElementById('verify-phone-btn');
+        const otpArea = document.getElementById('otp-area');
+
+        phoneInput.addEventListener('input', () => {
+            if(phoneInput.value !== currentUser.phone) verifyBtn.classList.remove('hidden');
+            else verifyBtn.classList.add('hidden');
+        });
+
+        verifyBtn.onclick = () => {
+            verifyBtn.classList.add('hidden');
+            otpArea.classList.remove('hidden');
+            showToast("OTP sent via raven");
+        };
+
+        document.getElementById('confirm-otp-btn').onclick = () => {
+            currentUser.phone = phoneInput.value;
+            otpArea.classList.add('hidden');
+            showToast("Phone Verified");
+        };
+
+        document.getElementById('save-profile-btn').onclick = () => showToast("Profile Updated");
+
+        function renderAddresses() {
+            const list = document.getElementById('address-list');
+            list.innerHTML = addresses.map(a => `
+                <div class="bg-white border border-gray-200 p-5 rounded-xl relative group shadow-sm">
+                    <h4 class="font-bold text-gray-900">${a.title}</h4>
+                    <p class="text-sm font-medium text-gray-500 mt-2">${a.text}</p>
+                    <button onclick="removeAddress(${a.id})" class="absolute top-4 right-4 text-red-400 hover:text-red-500 bg-red-50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all"><i class="ph ph-trash"></i></button>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('add-addr-btn').onclick = () => document.getElementById('new-addr-form').classList.remove('hidden');
+        document.getElementById('cancel-addr-btn').onclick = () => document.getElementById('new-addr-form').classList.add('hidden');
+        document.getElementById('save-addr-btn').onclick = () => {
+            const t = document.getElementById('new-addr-title').value;
+            const x = document.getElementById('new-addr-text').value;
+            if(t && x) {
+                addresses.push({id: Date.now(), title: t, text: x});
+                renderAddresses();
+                document.getElementById('new-addr-form').classList.add('hidden');
+                showToast("Location saved");
+            }
+        };
+        window.removeAddress = (id) => { addresses = addresses.filter(a => a.id !== id); renderAddresses(); };
+
+        function renderPayments() {
+            const list = document.getElementById('payment-list');
+            list.innerHTML = payments.map(p => `
+                <div class="flex items-center justify-between bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-lumora-accent/10 flex items-center justify-center">
+                            <i class="ph ${p.type==='UPI'?'ph-qr-code':'ph-credit-card'} text-lumora-accent text-xl"></i>
+                        </div>
+                        <span class="text-sm font-bold text-gray-900">${p.text}</span>
+                    </div>
+                    <button onclick="removePayment(${p.id})" class="text-red-400 hover:text-red-500 p-2 bg-red-50 rounded-full"><i class="ph ph-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        window.togglePaymentForm = (type) => {
+            document.getElementById('add-card-form').classList.add('hidden');
+            document.getElementById('add-upi-form').classList.add('hidden');
+            document.getElementById(`add-${type}-form`).classList.remove('hidden');
+        };
+
+        window.savePayment = (type) => {
+            const text = type === 'upi' ? document.getElementById('new-upi-id').value : "New Card Added";
+            if(text) {
+                payments.push({id: Date.now(), type: type.toUpperCase(), text});
+                renderPayments();
+                document.getElementById(`add-${type}-form`).classList.add('hidden');
+                showToast("Treasury Updated");
+            }
+        };
+        window.removePayment = (id) => { payments = payments.filter(p => p.id !== id); renderPayments(); };
+
+        function renderOrderTimeline() {
+            const tl = document.getElementById('order-timeline');
+            const today = new Date();
+            const formatDate = (date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+            const steps = [
+                { status: "Delivered", desc: "Package handed to resident", icon: "ph-check-circle text-white", bg: "bg-lumora-accent", dotBorder: "border-white" },
+                { status: "Out for Delivery", desc: "Rider is approaching your sanctuary", icon: "ph-moped text-white", bg: "bg-lumora-pink", dotBorder: "border-white" },
+                { status: "Reached Hub", desc: "Arrived at Arcane District Facility", icon: "ph-buildings text-gray-500", bg: "bg-gray-100", dotBorder: "border-gray-200" },
+                { status: "Shipped", desc: "Dispatched from Lumora Vaults", icon: "ph-truck text-gray-500", bg: "bg-gray-100", dotBorder: "border-gray-200" },
+                { status: "Order Placed", desc: "Your request was inscribed", icon: "ph-receipt text-gray-500", bg: "bg-gray-100", dotBorder: "border-gray-200" }
+            ];
+
+            let html = '';
+            for(let i=0; i<5; i++) {
+                let d = new Date(today);
+                d.setDate(today.getDate() - i);
+                let step = steps[i];
+                html += `
+                    <div class="relative flex gap-4 items-start">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center ${step.bg} absolute -left-[35px] z-10 border-4 ${step.dotBorder} shadow-sm">
+                            <i class="ph-fill ${step.icon} text-sm"></i>
+                        </div>
+                        <div class="-mt-1">
+                            <h5 class="font-bold text-sm ${i===0?'text-lumora-accent':i===1?'text-lumora-pink':'text-gray-900'}">${step.status}</h5>
+                            <p class="text-xs font-medium text-gray-500 mb-1">${step.desc}</p>
+                            <p class="text-[10px] text-gray-400 font-mono font-bold">${formatDate(d)} • ${10 + i}:00 AM</p>
+                        </div>
+                    </div>
+                `;
+            }
+            tl.innerHTML = html;
+        }
+
+        // --- SCRATCH CARD LOGIC ---
+        const canvas = document.getElementById('scratch-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        
+        function initScratchCard() {
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+            
+            // Silver covering
+            ctx.fillStyle = '#cbd5e1'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Pattern overlay to make it look like a scratch card
+            ctx.fillStyle = '#94a3b8';
+            for(let i=0; i<500; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*2, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            ctx.font = "bold 20px 'Inter'";
+            ctx.fillStyle = "#475569"; 
+            ctx.textAlign = "center";
+            ctx.fillText("SCRATCH ME", canvas.width/2, canvas.height/2);
+
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.lineWidth = 45;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+        }
+
+        function scratch(x, y) {
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            checkScratchComplete();
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if(isDrawing) scratch(e.offsetX, e.offsetY);
+        });
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseleave', () => isDrawing = false);
+        
+        canvas.addEventListener('touchstart', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            ctx.beginPath();
+            ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+            e.preventDefault();
+        }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => {
+            if(isDrawing) {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+            }
+            e.preventDefault();
+        }, {passive: false});
+        canvas.addEventListener('touchend', () => isDrawing = false);
+
+        function checkScratchComplete() {
+            const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+            let cleared = 0;
+            for(let i=3; i<imageData.data.length; i+=4) {
+                if(imageData.data[i] === 0) cleared++;
+            }
+            const percent = cleared / (canvas.width * canvas.height);
+            if(percent > 0.4) {
+                canvas.style.transition = 'opacity 0.6s ease';
+                canvas.style.opacity = '0';
+                setTimeout(() => canvas.style.pointerEvents = 'none', 600);
+            }
+        }
+
+        document.getElementById('gift-btn').onclick = () => {
+            canvas.style.opacity = '1';
+            canvas.style.pointerEvents = 'auto';
+            setTimeout(initScratchCard, 100); 
+            openModal('scratch-modal');
+        };
+
+        document.getElementById('gemini-btn').onclick = (e) => {
+            const btn = e.currentTarget;
+            btn.classList.add('punch-anim');
+            setTimeout(() => btn.classList.remove('punch-anim'), 300);
+            showToast("Ouch! Here's your code: LUMORA50");
+        };
+        
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        function rotateCarousel() {
+            if(slides.length === 0) return;
+            slides[currentSlide].classList.remove('opacity-100');
+            slides[currentSlide].classList.add('opacity-0');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.remove('opacity-0');
+            slides[currentSlide].classList.add('opacity-100');
+        }
+        setInterval(rotateCarousel, 5000);
+
+        function startCountdown() {
+            const timerEl = document.getElementById('countdown-timer');
+            if(!timerEl) return;
+            let endTime = new Date().getTime() + (12 * 60 * 60 * 1000 + 45 * 60 * 1000 + 30 * 1000);
+            
+            setInterval(() => {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+                if(distance < 0) { timerEl.innerHTML = "EXPIRED"; return; }
+                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((distance % (1000 * 60)) / 1000);
+                timerEl.innerHTML = String(h).padStart(2, '0') + ":" + String(m).padStart(2, '0') + ":" + String(s).padStart(2, '0');
+            }, 1000);
+        }
+
+        async function loadStoreCatalog() {
+            try {
+                const response = await fetch('/api/books');
+                if (!response.ok) return;
+                const catalog = await response.json();
+                if (!Array.isArray(catalog) || catalog.length === 0) return;
+                books = catalog;
+                categories = ['All', ...new Set(catalog.map(book => book.category))];
+            } catch (error) {
+                console.warn('Store API unavailable; using the embedded catalog.', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadStoreCatalog();
+            renderTabs();
+            renderBooks();
+            renderAddresses();
+            renderPayments();
+            renderOrderTimeline();
+            startCountdown();
+        });
+    </script>
+</body>
+</html>
